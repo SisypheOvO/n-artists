@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         n-artists
 // @namespace    URL
-// @version      0.2.3
+// @version      0.2.4
 // @description  Userscript to favourite nhentai artists
 // @icon         https://nhentai.net/favicon.png
 // @author       Sisyphus
@@ -169,15 +169,6 @@
         }
     }
 
-    function createBtnWorkPage(className, title) {
-        const wrapper = document.createElement("span");
-        wrapper.style = "padding: 0.13em 0.26em; display: inline-flex; align-items: center; justify-content: center; background-color: var(--border); border-top-left-radius: .3em; border-bottom-left-radius: .3em;";
-        const el = document.createElement("i");
-        el.className = className;
-        el.style.cursor = "pointer";
-        wrapper.appendChild(el);
-        return wrapper;
-    }
     function createBtnArtistPage(className, title) {
         const wrapper = document.createElement("span");
         wrapper.style = "padding: 0.13em 0.26em; margin-right: 0.13em; display: inline-flex; align-items: center; justify-content: center; background-color: var(--border); border-radius: .3em; vertical-align: middle;";
@@ -186,6 +177,56 @@
         el.style.cursor = "pointer";
         el.style.lineHeight = "inherit";
         el.style.margin = "0";
+        wrapper.appendChild(el);
+        return wrapper;
+    }
+    function injectFavBtns2ArtistPage() {
+        const header = document.querySelector("h1");
+        if (!header)
+            return;
+        if (header.querySelector(".favoriteArtistButton"))
+            return;
+        const match = window.location.pathname.match(/\/artist\/([^/]+)\//);
+        const artistName = match ? decodeURIComponent(match[1].replace(/-/g, " ")) : null;
+        if (!artistName)
+            return;
+        const btn = createBtnArtistPage("far fa-heart favoriteArtistButton");
+        btn.dataset.artist = artistName;
+        const added = getFavorites().includes(artistName);
+        updateButtonState(added, btn);
+        btn.addEventListener("click", async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const added = await toggleFavorite(artistName);
+            updateButtonState(added, btn);
+        });
+        header.insertAdjacentElement("afterbegin", btn);
+    }
+    function initArtistPage() {
+        try {
+            injectFavBtns2ArtistPage();
+            if (window.__nArtistsArtistObserver)
+                return;
+            const observer = new MutationObserver(() => {
+                injectFavBtns2ArtistPage();
+            });
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true,
+            });
+            window.__nArtistsArtistObserver = observer;
+        }
+        catch (e) {
+            console.error("initArtistPage error", e);
+        }
+    }
+
+    function createBtnWorkPage(className, title) {
+        const wrapper = document.createElement("span");
+        wrapper.style = "padding: 0.13em 0.26em; display: inline-flex; align-items: center; justify-content: center; background-color: var(--border); border-top-left-radius: .3em; border-bottom-left-radius: .3em;";
+        const el = document.createElement("i");
+        el.className = className;
+        el.style.cursor = "pointer";
         wrapper.appendChild(el);
         return wrapper;
     }
@@ -216,28 +257,6 @@
             artistTagChip.insertAdjacentElement("afterbegin", btn);
         }
     }
-    function injectFavBtns2ArtistPage() {
-        const header = document.querySelector("h1");
-        if (!header)
-            return;
-        if (header.querySelector(".favoriteArtistButton"))
-            return;
-        const match = window.location.pathname.match(/\/artist\/([^/]+)\//);
-        const artistName = match ? decodeURIComponent(match[1].replace(/-/g, " ")) : null;
-        if (!artistName)
-            return;
-        const btn = createBtnArtistPage("far fa-heart favoriteArtistButton");
-        btn.dataset.artist = artistName;
-        const added = getFavorites().includes(artistName);
-        updateButtonState(added, btn);
-        btn.addEventListener("click", async (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            const added = await toggleFavorite(artistName);
-            updateButtonState(added, btn);
-        });
-        header.insertAdjacentElement("afterbegin", btn);
-    }
     /**
      * init artwork page by adding favorite buttons to artist tags
      */
@@ -257,24 +276,6 @@
         }
         catch (e) {
             console.error("initWorkPage error", e);
-        }
-    }
-    function initArtistPage() {
-        try {
-            injectFavBtns2ArtistPage();
-            if (window.__nArtistsArtistObserver)
-                return;
-            const observer = new MutationObserver(() => {
-                injectFavBtns2ArtistPage();
-            });
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true,
-            });
-            window.__nArtistsArtistObserver = observer;
-        }
-        catch (e) {
-            console.error("initArtistPage error", e);
         }
     }
 

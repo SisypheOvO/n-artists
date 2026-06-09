@@ -1,4 +1,5 @@
-import { initWorkPage, initArtistPage } from "./pages/artistPage"
+import { initArtistPage } from "./pages/artistPage"
+import { initWorkPage } from "./pages/artworkPage"
 import { initFavoritesPage } from "./pages/favoritesPage"
 
 function smallCSSInject() {
