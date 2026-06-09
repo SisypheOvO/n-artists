@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         n-artists
 // @namespace    URL
-// @version      0.1.2
+// @version      0.2.0
 // @description  Userscript to favourite nhentai artists
 // @icon         https://nhentai.net/favicon.png
 // @author       Sisyphus
@@ -280,6 +280,7 @@
 
     let showingFavoriteArtists = false;
     let lastFavoritesRouteKey = null;
+    let importInputEl = null;
     function getFavoritesWorkspace() {
         return document.getElementById("favcontainer");
     }
@@ -320,6 +321,88 @@
             root.appendChild(gallery);
             container.appendChild(root);
         }
+    }
+    function getFavoriteArtistsTxt() {
+        const favorites = getFavorites();
+        const thumbs = getThumbnails();
+        return favorites
+            .map((artist) => {
+            const thumbnail = thumbs.get(artist) || "";
+            return `${artist}\t${thumbnail}`;
+        })
+            .join("\n");
+    }
+    function downloadTxtFile(filename, content) {
+        const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    }
+    function parseFavoriteArtistsTxt(text) {
+        const seen = new Set();
+        const artists = [];
+        const thumbnails = new Map();
+        for (const rawLine of text.split(/\r?\n/)) {
+            const line = rawLine.trim();
+            if (!line)
+                continue;
+            const [artistPart, thumbnailPart = ""] = line.split("\t");
+            const artist = artistPart.trim();
+            if (!artist)
+                continue;
+            if (seen.has(artist))
+                continue;
+            seen.add(artist);
+            artists.push(artist);
+            const thumbnail = thumbnailPart.trim();
+            if (thumbnail) {
+                thumbnails.set(artist, thumbnail);
+            }
+        }
+        return { artists, thumbnails };
+    }
+    function refreshFavoriteArtistsView() {
+        if (!showingFavoriteArtists)
+            return;
+        const panel = getArtistsPanel();
+        if (!panel)
+            return;
+        renderFavorites(panel);
+    }
+    async function importFavoriteArtistsFile(file) {
+        const text = await file.text();
+        const { artists, thumbnails } = parseFavoriteArtistsTxt(text);
+        const existingThumbnails = getThumbnails();
+        const nextThumbnails = new Map(existingThumbnails);
+        for (const artist of artists) {
+            const parsedThumbnail = thumbnails.get(artist);
+            if (parsedThumbnail) {
+                nextThumbnails.set(artist, parsedThumbnail);
+                continue;
+            }
+            const existingThumbnail = existingThumbnails.get(artist);
+            if (existingThumbnail) {
+                nextThumbnails.set(artist, existingThumbnail);
+                continue;
+            }
+            try {
+                const fetchedThumbnail = await fetchArtistThumbnail(artist);
+                if (fetchedThumbnail) {
+                    nextThumbnails.set(artist, fetchedThumbnail);
+                }
+            }
+            catch (e) {
+                console.warn("fetch thumbnail during import failed", artist, e);
+            }
+        }
+        saveFavorites(artists);
+        saveThumbnails(nextThumbnails);
+        refreshFavoriteArtistsView();
     }
     function getArtistsPanel() {
         return document.getElementById("favorite-artists-panel");
@@ -389,13 +472,13 @@
         const style = document.createElement("style");
         style.id = "favorites-display-button-style";
         style.textContent = `
-    #displayFavoriteArtists {
+    #displayFavoriteArtists, #exportFavoriteArtists, #importFavoriteArtists {
         margin-left: 0.5em;
         background-color: var(--border);
         transition: background-color 0.2s ease;
     }
 
-    #displayFavoriteArtists:hover {
+    #displayFavoriteArtists:hover, #exportFavoriteArtists:hover, #importFavoriteArtists:hover {
         background-color: var(--accent-hover);
     }
 `;
@@ -421,6 +504,48 @@
                 showFavoriteArtists(displayButton);
             }
         });
+        const exportButton = document.createElement("button");
+        exportButton.id = "exportFavoriteArtists";
+        exportButton.className = "btn";
+        exportButton.type = "button";
+        exportButton.textContent = "Export Artists TXT";
+        exportButton.style.marginLeft = "0.5em";
+        exportButton.addEventListener("click", () => {
+            downloadTxtFile("favorite-artists.txt", `${getFavoriteArtistsTxt()}\n`);
+        });
+        const importButton = document.createElement("button");
+        importButton.id = "importFavoriteArtists";
+        importButton.className = "btn";
+        importButton.type = "button";
+        importButton.textContent = "Import Artists TXT";
+        importButton.style.marginLeft = "0.5em";
+        importButton.addEventListener("click", () => {
+            importInputEl?.click();
+        });
+        if (!importInputEl) {
+            importInputEl = document.createElement("input");
+            importInputEl.type = "file";
+            importInputEl.accept = ".txt,text/plain";
+            importInputEl.hidden = true;
+            importInputEl.addEventListener("change", async () => {
+                const file = importInputEl?.files?.[0];
+                if (!file)
+                    return;
+                try {
+                    await importFavoriteArtistsFile(file);
+                }
+                catch (e) {
+                    console.error("importFavoriteArtistsFile error", e);
+                }
+                finally {
+                    if (importInputEl)
+                        importInputEl.value = "";
+                }
+            });
+            document.body.appendChild(importInputEl);
+        }
+        element.insertAdjacentElement("afterend", importButton);
+        element.insertAdjacentElement("afterend", exportButton);
     }
     function initFavoritesPage() {
         try {
