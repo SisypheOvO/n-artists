@@ -1,5 +1,5 @@
-import { getFavorites, saveFavorites, getThumbnails, saveThumbnails } from "./storage"
-import { fetchArtistThumbnail } from "./api"
+import { getFavorites, saveFavorites, getThumbnails, saveThumbnails } from "@/storage"
+import { fetchArtistThumbnail } from "@/api"
 
 export async function toggleFavorite(artistName: string): Promise<boolean> {
     try {

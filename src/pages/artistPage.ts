@@ -1,5 +1,5 @@
-import { toggleFavorite, updateButtonState } from "./toggleFav"
-import { getFavorites } from "./storage"
+import { toggleFavorite, updateButtonState } from "../toggling/toggleFav"
+import { getFavorites } from "../storage"
 
 function createBtnWorkPage(className: string, title?: string): HTMLElement {
     const wrapper = document.createElement("span")

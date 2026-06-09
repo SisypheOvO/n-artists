@@ -1,5 +1,5 @@
-import { getFavorites, getThumbnails, saveFavorites, saveThumbnails } from "./storage"
-import { fetchArtistThumbnail } from "./api"
+import { getFavorites, getThumbnails, saveFavorites, saveThumbnails } from "@/storage"
+import { fetchArtistThumbnail } from "@/api"
 
 let showingFavoriteArtists = false
 let lastFavoritesRouteKey: string | null = null

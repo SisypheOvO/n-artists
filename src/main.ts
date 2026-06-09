@@ -1,5 +1,5 @@
-import { initWorkPage, initArtistPage } from "./artist"
-import { initFavoritesPage } from "./favoritesPage"
+import { initWorkPage, initArtistPage } from "./pages/artistPage"
+import { initFavoritesPage } from "./pages/favoritesPage"
 
 function smallCSSInject() {
     if (document.getElementById("favorites-search-style")) return
