@@ -15,7 +15,7 @@ function smallCSSInject() {
 function runRoute() {
     const url = window.location.href
     const reg_url_1 = /https:\/\/nhentai\.net\/g\/[0-9]*\/$/
-    const reg_url_2 = /https:\/\/nhentai\.net\/user\/favorites$/
+    const reg_url_2 = /^https:\/\/nhentai\.net\/user\/favorites(?!\/)(?:\?.*)?$/
     const reg_url_3 = /https:\/\/nhentai\.net\/artist\/[^/]+\/$/
     if (reg_url_1.test(url)) {
         initWorkPage()

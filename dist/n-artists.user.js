@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         n-artists
 // @namespace    URL
-// @version      0.1.0
+// @version      0.1.1
 // @description  Userscript to favourite nhentai artists
 // @icon         https://nhentai.net/favicon.png
 // @author       Sisyphus
@@ -417,7 +417,7 @@
     function runRoute() {
         const url = window.location.href;
         const reg_url_1 = /https:\/\/nhentai\.net\/g\/[0-9]*\/$/;
-        const reg_url_2 = /https:\/\/nhentai\.net\/user\/favorites$/;
+        const reg_url_2 = /^https:\/\/nhentai\.net\/user\/favorites(?!\/)(?:\?.*)?$/;
         const reg_url_3 = /https:\/\/nhentai\.net\/artist\/[^/]+\/$/;
         if (reg_url_1.test(url)) {
             initWorkPage();
