@@ -106,6 +106,36 @@ function parseFavoriteArtistsTxt(text: string): { artists: string[]; thumbnails:
     return { artists, thumbnails }
 }
 
+function getDiffSummary(currentList: string[], importedList: string[]) {
+    const currentSet = new Set(currentList)
+    const importedSet = new Set(importedList)
+
+    const added = importedList.filter((artist) => !currentSet.has(artist))
+    const removed = currentList.filter((artist) => !importedSet.has(artist))
+
+    return { added, removed }
+}
+
+function isLargeImportDiff(currentCount: number, addedCount: number, removedCount: number): boolean {
+    const threshold = Math.max(10, Math.ceil(currentCount * 0.2))
+    return addedCount >= threshold || removedCount >= threshold
+}
+
+function formatArtistSample(list: string[], limit = 5): string {
+    if (list.length === 0) return "(none)"
+    return list.slice(0, limit).join(", ") + (list.length > limit ? ` ... (+${list.length - limit})` : "")
+}
+
+function confirmImportReplacement(currentList: string[], importedList: string[]): boolean {
+    const { added, removed } = getDiffSummary(currentList, importedList)
+    const largeDiff = isLargeImportDiff(currentList.length, added.length, removed.length)
+    const warning = largeDiff ? "\n\nWarning: the difference is large. Replacing the current list is irreversible. You may want to back up first." : ""
+
+    const message = ["Review the import file before continuing.", `Current artists: ${currentList.length}`, `Imported artists: ${importedList.length}`, `To be added: ${added.length}`, `To be removed: ${removed.length}`, `Added sample: ${formatArtistSample(added)}`, `Removed sample: ${formatArtistSample(removed)}`, warning, "", "Continue import and overwrite the current list?"].join("\n")
+
+    return window.confirm(message)
+}
+
 function refreshFavoriteArtistsView() {
     if (!showingFavoriteArtists) return
     const panel = getArtistsPanel()
@@ -116,6 +146,12 @@ function refreshFavoriteArtistsView() {
 async function importFavoriteArtistsFile(file: File) {
     const text = await file.text()
     const { artists, thumbnails } = parseFavoriteArtistsTxt(text)
+    const currentFavorites = getFavorites()
+
+    if (!confirmImportReplacement(currentFavorites, artists)) {
+        return
+    }
+
     const existingThumbnails = getThumbnails()
     const nextThumbnails = new Map<string, string>(existingThumbnails)
 
