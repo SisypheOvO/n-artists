@@ -4,6 +4,18 @@
 
 A userscript to favourite nhentai artists. It should work on `/g/.../`, `/artist/` and `/favorites/` pages.
 
+Artist Page:
+
+![Demo](assets/artist-page.png)
+
+Artwork Page:
+
+![Demo](assets/artwork-page.png)
+
+Favorites Page:
+
+![Demo](assets/favorites-page.png)
+
 Aside from the main functionality, it also
 
 - Give a recommendation of artists based on your current favourite artwork gallery.
