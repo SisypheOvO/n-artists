@@ -1,7 +1,7 @@
 import { getFavorites, getThumbnails } from "./storage"
 
-let originalFavoritesHtml: string | null = null
 let showingFavoriteArtists = false
+let lastFavoritesRouteKey: string | null = null
 
 function getFavoritesWorkspace(): HTMLElement | null {
     return document.getElementById("favcontainer")
@@ -51,15 +51,40 @@ function renderFavorites(container: HTMLElement) {
     }
 }
 
+function getArtistsPanel(): HTMLElement | null {
+    return document.getElementById("favorite-artists-panel")
+}
+
+function setArtworkPaginationVisible(visible: boolean) {
+    const isMobile = window.matchMedia("(max-width: 599px)").matches
+    const activeSelector = isMobile ? "mobile-pagination" : "desktop-pagination"
+    console.log("Setting artwork pagination visible?", visible, "activeSelector", activeSelector)
+    for (const pagination of document.querySelectorAll(".pagination")) {
+        const paginationElement = pagination as HTMLElement
+        console.log("Pagination element", paginationElement, "activeSelector", activeSelector)
+        const isActivePagination = paginationElement.classList.contains(activeSelector)
+        console.log("Is active pagination?", isActivePagination)
+        paginationElement.style.display = visible && isActivePagination ? "block" : "none"
+        console.log("Set pagination display to", paginationElement.style.display)
+    }
+}
+
 function showFavoriteArtists(button?: HTMLButtonElement) {
     const workspace = getFavoritesWorkspace()
     if (!workspace) return
 
-    if (originalFavoritesHtml === null) {
-        originalFavoritesHtml = workspace.innerHTML
+    let panel = getArtistsPanel()
+    if (!panel) {
+        panel = document.createElement("div")
+        panel.id = "favorite-artists-panel"
+        panel.style = "margin-top: 0.75em;"
+        workspace.insertAdjacentElement("beforebegin", panel)
     }
 
-    renderFavorites(workspace)
+    workspace.style.display = "none"
+    setArtworkPaginationVisible(false)
+    panel.style.display = "block"
+    renderFavorites(panel)
     showingFavoriteArtists = true
     if (button) updateDisplayButtonLabel(button)
 }
@@ -68,11 +93,25 @@ function showFavoriteArtworks(button?: HTMLButtonElement) {
     const workspace = getFavoritesWorkspace()
     if (!workspace) return
 
-    if (originalFavoritesHtml !== null) {
-        workspace.innerHTML = originalFavoritesHtml
-    }
+    const panel = getArtistsPanel()
+    if (panel) panel.remove()
+    workspace.style.display = "block"
+    setArtworkPaginationVisible(true)
     showingFavoriteArtists = false
     if (button) updateDisplayButtonLabel(button)
+}
+
+function syncFavoritesRouteState() {
+    const currentRouteKey = `${window.location.pathname}${window.location.search}`
+    if (lastFavoritesRouteKey !== currentRouteKey) {
+        lastFavoritesRouteKey = currentRouteKey
+        showingFavoriteArtists = false
+        const panel = getArtistsPanel()
+        if (panel) panel.remove()
+        const workspace = getFavoritesWorkspace()
+        if (workspace) workspace.style.display = "block"
+        setArtworkPaginationVisible(true)
+    }
 }
 
 function injectDisplayButtonStyle() {
@@ -117,6 +156,7 @@ function injectDisplayButton() {
 export function initFavoritesPage() {
     try {
         injectDisplayButtonStyle()
+        syncFavoritesRouteState()
         injectDisplayButton()
 
         if ((window as any).__nArtistsFavoritesObserver) return
