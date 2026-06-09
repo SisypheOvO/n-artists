@@ -76,6 +76,11 @@ function downloadTxtFile(filename: string, content: string) {
     URL.revokeObjectURL(url)
 }
 
+function formatTimestamp(date: Date): string {
+    const pad = (value: number) => String(value).padStart(2, "0")
+    return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`
+}
+
 function parseFavoriteArtistsTxt(text: string): { artists: string[]; thumbnails: Map<string, string> } {
     const seen = new Set<string>()
     const artists: string[] = []
@@ -250,7 +255,7 @@ function injectDisplayButton() {
     exportButton.textContent = "Export Artists TXT"
     exportButton.style.marginLeft = "0.5em"
     exportButton.addEventListener("click", () => {
-        downloadTxtFile("favorite-artists.txt", `${getFavoriteArtistsTxt()}\n`)
+        downloadTxtFile(`favorite-artists-${formatTimestamp(new Date())}.txt`, `${getFavoriteArtistsTxt()}\n`)
     })
 
     const importButton = document.createElement("button")

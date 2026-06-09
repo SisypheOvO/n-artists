@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         n-artists
 // @namespace    URL
-// @version      0.2.0
+// @version      0.2.1
 // @description  Userscript to favourite nhentai artists
 // @icon         https://nhentai.net/favicon.png
 // @author       Sisyphus
@@ -343,6 +343,10 @@
         link.remove();
         URL.revokeObjectURL(url);
     }
+    function formatTimestamp(date) {
+        const pad = (value) => String(value).padStart(2, "0");
+        return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
+    }
     function parseFavoriteArtistsTxt(text) {
         const seen = new Set();
         const artists = [];
@@ -511,7 +515,7 @@
         exportButton.textContent = "Export Artists TXT";
         exportButton.style.marginLeft = "0.5em";
         exportButton.addEventListener("click", () => {
-            downloadTxtFile("favorite-artists.txt", `${getFavoriteArtistsTxt()}\n`);
+            downloadTxtFile(`favorite-artists-${formatTimestamp(new Date())}.txt`, `${getFavoriteArtistsTxt()}\n`);
         });
         const importButton = document.createElement("button");
         importButton.id = "importFavoriteArtists";
