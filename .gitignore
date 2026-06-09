@@ -1,0 +1,11 @@
+.vscode/*
+!.vscode/settings.json
+reference
+node_modules
+
+# lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# We are not ignoring dist/ because we want to keep the built userscript for auto publishing

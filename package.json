@@ -1,0 +1,19 @@
+{
+  "name": "n-artists",
+  "version": "1.0.0",
+  "description": "Favourite nhentai artists",
+  "type": "module",
+  "scripts": {
+    "format": "prettier --write ./src/**/*.{ts,tsx,js,jsx,json,css,scss,less,html} --end-of-line auto",
+    "build": "rollup -c"
+  },
+  "devDependencies": {
+    "@rollup/plugin-typescript": "12.3.0",
+    "prettier": "3.8.3",
+    "rollup": "4.61.1",
+    "tslib": "2.8.1",
+    "typescript": "^6.0.3"
+  },
+  "author": "Sisyphus",
+  "license": "MIT"
+}
