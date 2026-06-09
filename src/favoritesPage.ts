@@ -1,5 +1,17 @@
 import { getFavorites, getThumbnails } from "./storage"
 
+let originalFavoritesHtml: string | null = null
+let showingFavoriteArtists = false
+
+function getFavoritesWorkspace(): HTMLElement | null {
+    return document.getElementById("favcontainer")
+}
+
+function updateDisplayButtonLabel(button: HTMLButtonElement) {
+    button.textContent = showingFavoriteArtists ? "Show Favorite Doujins" : "Show Favorite Artists"
+    button.setAttribute("aria-pressed", showingFavoriteArtists ? "true" : "false")
+}
+
 function renderFavorites(container: HTMLElement) {
     const favs = getFavorites()
     const thumbs = getThumbnails()
@@ -39,6 +51,30 @@ function renderFavorites(container: HTMLElement) {
     }
 }
 
+function showFavoriteArtists(button?: HTMLButtonElement) {
+    const workspace = getFavoritesWorkspace()
+    if (!workspace) return
+
+    if (originalFavoritesHtml === null) {
+        originalFavoritesHtml = workspace.innerHTML
+    }
+
+    renderFavorites(workspace)
+    showingFavoriteArtists = true
+    if (button) updateDisplayButtonLabel(button)
+}
+
+function showFavoriteArtworks(button?: HTMLButtonElement) {
+    const workspace = getFavoritesWorkspace()
+    if (!workspace) return
+
+    if (originalFavoritesHtml !== null) {
+        workspace.innerHTML = originalFavoritesHtml
+    }
+    showingFavoriteArtists = false
+    if (button) updateDisplayButtonLabel(button)
+}
+
 function injectDisplayButtonStyle() {
     if (document.getElementById("favorites-display-button-style")) return
     const style = document.createElement("style")
@@ -67,12 +103,14 @@ function injectDisplayButton() {
     displayButton.id = "displayFavoriteArtists"
     displayButton.className = "btn"
     displayButton.type = "button"
-    displayButton.textContent = "Favorite Artists ?"
+    updateDisplayButtonLabel(displayButton)
     element.parentNode?.insertBefore(displayButton, element.nextSibling || null)
     displayButton.addEventListener("click", () => {
-        const workspace = document.getElementById("favcontainer")
-        if (!workspace) return
-        renderFavorites(workspace)
+        if (showingFavoriteArtists) {
+            showFavoriteArtworks(displayButton)
+        } else {
+            showFavoriteArtists(displayButton)
+        }
     })
 }
 

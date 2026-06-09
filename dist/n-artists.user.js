@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         n-artists
 // @namespace    URL
-// @version      0.0.1
+// @version      0.1.0
 // @description  Userscript to favourite nhentai artists
 // @icon         https://nhentai.net/favicon.png
 // @author       Sisyphus
@@ -278,6 +278,15 @@
         }
     }
 
+    let originalFavoritesHtml = null;
+    let showingFavoriteArtists = false;
+    function getFavoritesWorkspace() {
+        return document.getElementById("favcontainer");
+    }
+    function updateDisplayButtonLabel(button) {
+        button.textContent = showingFavoriteArtists ? "Show Favorite Doujins" : "Show Favorite Artists";
+        button.setAttribute("aria-pressed", showingFavoriteArtists ? "true" : "false");
+    }
     function renderFavorites(container) {
         const favs = getFavorites();
         const thumbs = getThumbnails();
@@ -312,6 +321,29 @@
             container.appendChild(root);
         }
     }
+    function showFavoriteArtists(button) {
+        const workspace = getFavoritesWorkspace();
+        if (!workspace)
+            return;
+        if (originalFavoritesHtml === null) {
+            originalFavoritesHtml = workspace.innerHTML;
+        }
+        renderFavorites(workspace);
+        showingFavoriteArtists = true;
+        if (button)
+            updateDisplayButtonLabel(button);
+    }
+    function showFavoriteArtworks(button) {
+        const workspace = getFavoritesWorkspace();
+        if (!workspace)
+            return;
+        if (originalFavoritesHtml !== null) {
+            workspace.innerHTML = originalFavoritesHtml;
+        }
+        showingFavoriteArtists = false;
+        if (button)
+            updateDisplayButtonLabel(button);
+    }
     function injectDisplayButtonStyle() {
         if (document.getElementById("favorites-display-button-style"))
             return;
@@ -340,13 +372,15 @@
         displayButton.id = "displayFavoriteArtists";
         displayButton.className = "btn";
         displayButton.type = "button";
-        displayButton.textContent = "Favorite Artists ?";
+        updateDisplayButtonLabel(displayButton);
         element.parentNode?.insertBefore(displayButton, element.nextSibling || null);
         displayButton.addEventListener("click", () => {
-            const workspace = document.getElementById("favcontainer");
-            if (!workspace)
-                return;
-            renderFavorites(workspace);
+            if (showingFavoriteArtists) {
+                showFavoriteArtworks(displayButton);
+            }
+            else {
+                showFavoriteArtists(displayButton);
+            }
         });
     }
     function initFavoritesPage() {
