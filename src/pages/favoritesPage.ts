@@ -1,5 +1,6 @@
 import { getFavorites, getThumbnails, saveFavorites, saveThumbnails } from "@/storage"
 import { fetchArtistThumbnail } from "@/api"
+import { toggleFavorite, updateButtonState } from "@/toggling/toggleFav"
 
 let showingFavoriteArtists = false
 let lastFavoritesRouteKey: string | null = null
@@ -7,6 +8,19 @@ let importInputEl: HTMLInputElement | null = null
 
 function getFavoritesWorkspace(): HTMLElement | null {
     return document.getElementById("favcontainer")
+}
+
+function createFavoriteButton(className: string, title?: string): HTMLElement {
+    const wrapper = document.createElement("span")
+    wrapper.style = "padding: 0.13em 0.26em; margin-right: 0.26em; display: inline-flex; align-items: center; justify-content: center; background-color: var(--border); border-radius: .3em; vertical-align: middle;"
+    const el = document.createElement("i")
+    el.className = className
+    if (title) el.setAttribute("title", title)
+    ;(el as HTMLElement).style.cursor = "pointer"
+    ;(el as HTMLElement).style.lineHeight = "inherit"
+    ;(el as HTMLElement).style.margin = "0"
+    wrapper.appendChild(el)
+    return wrapper
 }
 
 function updateDisplayButtonLabel(button: HTMLButtonElement) {
@@ -41,10 +55,24 @@ function renderFavorites(container: HTMLElement) {
 
         const caption = document.createElement("div")
         caption.className = "caption"
-        caption.textContent = artist
-        caption.style = "position: relative;"
+        caption.style = "position: relative; display: inline-flex; align-items: center;"
+
+        const button = createFavoriteButton("fa fa-heart favoriteArtistButton", `Remove ${artist} from favorites`)
+        button.dataset.artist = artist
+        updateButtonState(true, button, artist)
+        button.addEventListener("click", async (event) => {
+            event.preventDefault()
+            event.stopPropagation()
+            const added = await toggleFavorite(artist)
+            updateButtonState(added, button, artist)
+        })
+
+        const label = document.createElement("span")
+        label.textContent = artist
 
         link.appendChild(img)
+        caption.appendChild(button)
+        caption.appendChild(label)
         link.appendChild(caption)
         link.style = "display: inline-flex; padding: 0; margin: 0; flex-direction: column; align-items: center;"
         gallery.appendChild(link)

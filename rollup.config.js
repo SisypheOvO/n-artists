@@ -8,7 +8,7 @@ export default {
         banner: `// ==UserScript==
 // @name         n-artists
 // @namespace    URL
-// @version      0.2.5
+// @version      0.2.6
 // @description  Userscript to favorite nhentai artists
 // @icon         https://nhentai.net/favicon.png
 // @author       Sisyphus

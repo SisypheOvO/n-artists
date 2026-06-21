@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         n-artists
 // @namespace    URL
-// @version      0.2.5
+// @version      0.2.6
 // @description  Userscript to favorite nhentai artists
 // @icon         https://nhentai.net/favicon.png
 // @author       Sisyphus
@@ -285,6 +285,19 @@
     function getFavoritesWorkspace() {
         return document.getElementById("favcontainer");
     }
+    function createFavoriteButton(className, title) {
+        const wrapper = document.createElement("span");
+        wrapper.style = "padding: 0.13em 0.26em; margin-right: 0.26em; display: inline-flex; align-items: center; justify-content: center; background-color: var(--border); border-radius: .3em; vertical-align: middle;";
+        const el = document.createElement("i");
+        el.className = className;
+        if (title)
+            el.setAttribute("title", title);
+        el.style.cursor = "pointer";
+        el.style.lineHeight = "inherit";
+        el.style.margin = "0";
+        wrapper.appendChild(el);
+        return wrapper;
+    }
     function updateDisplayButtonLabel(button) {
         button.textContent = showingFavoriteArtists ? "Show Favorite Doujins" : "Show Favorite Artists";
         button.setAttribute("aria-pressed", showingFavoriteArtists ? "true" : "false");
@@ -313,9 +326,21 @@
             img.style = "position: relative; object-fit: cover; width: 100%; height: 100%;";
             const caption = document.createElement("div");
             caption.className = "caption";
-            caption.textContent = artist;
-            caption.style = "position: relative;";
+            caption.style = "position: relative; display: inline-flex; align-items: center; justify-content: center;";
+            const button = createFavoriteButton("fa fa-heart favoriteArtistButton", `Remove ${artist} from favorites`);
+            button.dataset.artist = artist;
+            updateButtonState(true, button);
+            button.addEventListener("click", async (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                const added = await toggleFavorite(artist);
+                updateButtonState(added, button);
+            });
+            const label = document.createElement("span");
+            label.textContent = artist;
             link.appendChild(img);
+            caption.appendChild(button);
+            caption.appendChild(label);
             link.appendChild(caption);
             link.style = "display: inline-flex; padding: 0; margin: 0; flex-direction: column; align-items: center;";
             gallery.appendChild(link);
