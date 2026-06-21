@@ -209,7 +209,8 @@ function showFavoriteArtists(button?: HTMLButtonElement) {
     if (!panel) {
         panel = document.createElement("div")
         panel.id = "favorite-artists-panel"
-        panel.style = "margin-top: 0.75em;"
+        panel.className = "container"
+        panel.style = "margin-top: 0.75em; padding: 10px 10px 40px;"
         workspace.insertAdjacentElement("beforebegin", panel)
     }
 

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         n-artists
 // @namespace    URL
-// @version      0.2.4
+// @version      0.2.5
 // @description  Userscript to favourite nhentai artists
 // @icon         https://nhentai.net/favicon.png
 // @author       Sisyphus
@@ -460,7 +460,8 @@
         if (!panel) {
             panel = document.createElement("div");
             panel.id = "favorite-artists-panel";
-            panel.style = "margin-top: 0.75em;";
+            panel.className = "container";
+            panel.style = "margin-top: 0.75em; padding: 10px 10px 40px;";
             workspace.insertAdjacentElement("beforebegin", panel);
         }
         workspace.style.display = "none";
