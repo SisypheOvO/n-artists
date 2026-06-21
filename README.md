@@ -2,7 +2,7 @@
 
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-A userscript to favourite nhentai artists. It should work on `/g/.../`, `/artist/` and `/favorites/` pages. The list of favourite artists is always stored in LocalStorage.
+A userscript to favorite nhentai artists. It should work on `/g/.../`, `/artist/` and `/favorites/` pages. The list of favorite artists is always stored in LocalStorage.
 
 ## Demo
 
@@ -22,7 +22,7 @@ Favorites Page:
 
 Aside from the main functionality, it also
 
-- Allow importing and exporting favourite artists as a list txt file.
+- Allow importing and exporting favorite artists as a list txt file.
 - ~~Allow storing the list to Google Drive to use the list across devices and avoid losing it (for example, when your browser data is cleared).~~ Not implemented yet, but will be in the future.
 
 ## Installation
