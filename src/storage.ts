@@ -1,7 +1,9 @@
 export type Thumbnails = Map<string, string>
+export type FavoriteSortMode = "date" | "name"
 
 const FAVORITES_KEY = "favoriteArtists"
 const THUMBS_KEY = "artistsThumbnail"
+const FAVORITE_SORT_MODE_KEY = "favoriteArtistsSortMode"
 
 export function replacer(_key: any, value: any) {
     if (value instanceof Map) {
@@ -28,6 +30,21 @@ export function getFavorites(): string[] {
 
 export function saveFavorites(list: string[]) {
     localStorage.setItem(FAVORITES_KEY, JSON.stringify(list))
+}
+
+export function getFavoriteSortMode(): FavoriteSortMode {
+    const raw = localStorage.getItem(FAVORITE_SORT_MODE_KEY)
+    return raw === "name" ? "name" : "date"
+}
+
+export function setFavoriteSortMode(mode: FavoriteSortMode) {
+    localStorage.setItem(FAVORITE_SORT_MODE_KEY, mode)
+}
+
+export function toggleFavoriteSortMode(): FavoriteSortMode {
+    const nextMode = getFavoriteSortMode() === "date" ? "name" : "date"
+    setFavoriteSortMode(nextMode)
+    return nextMode
 }
 
 export function getThumbnails(): Thumbnails {

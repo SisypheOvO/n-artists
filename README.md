@@ -22,7 +22,9 @@ Favorites Page:
 
 Aside from the main functionality, it also
 
-- Allow importing and exporting favorite artists as a list txt file.
+- Allows importing and exporting favorite artists as a list txt file.
+- Allows searching artists in the favorites page by name.
+- Allows sorting artists in the favorites page by name or by the fav date.
 - ~~Allow storing the list to Google Drive to use the list across devices and avoid losing it (for example, when your browser data is cleared).~~ Not implemented yet, but will be in the future.
 
 ## Installation

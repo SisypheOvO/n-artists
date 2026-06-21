@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         n-artists
 // @namespace    URL
-// @version      0.2.8
+// @version      0.2.9
 // @description  Userscript to favorite nhentai artists
 // @icon         https://nhentai.net/favicon.png
 // @author       Sisyphus
@@ -20,6 +20,7 @@
 
     const FAVORITES_KEY = "favoriteArtists";
     const THUMBS_KEY = "artistsThumbnail";
+    const FAVORITE_SORT_MODE_KEY = "favoriteArtistsSortMode";
     function replacer(_key, value) {
         if (value instanceof Map) {
             return { dataType: "Map", value: Array.from(value.entries()) };
@@ -43,6 +44,18 @@
     }
     function saveFavorites(list) {
         localStorage.setItem(FAVORITES_KEY, JSON.stringify(list));
+    }
+    function getFavoriteSortMode() {
+        const raw = localStorage.getItem(FAVORITE_SORT_MODE_KEY);
+        return raw === "name" ? "name" : "date";
+    }
+    function setFavoriteSortMode(mode) {
+        localStorage.setItem(FAVORITE_SORT_MODE_KEY, mode);
+    }
+    function toggleFavoriteSortMode() {
+        const nextMode = getFavoriteSortMode() === "date" ? "name" : "date";
+        setFavoriteSortMode(nextMode);
+        return nextMode;
     }
     function getThumbnails() {
         try {
@@ -307,8 +320,12 @@
     function renderFavorites(container) {
         const favs = getFavorites();
         const thumbs = getThumbnails();
-        const query = favoriteSearchQuery.trim().toLowerCase(); // normalize the query for case-insensitive search
-        const filteredFavs = query ? favs.filter((artist) => artist.toLowerCase().includes(query)) : favs;
+        const query = favoriteSearchQuery.trim().toLowerCase();
+        const sortMode = getFavoriteSortMode();
+        const filteredFavs = (query ? favs.filter((artist) => artist.toLowerCase().includes(query)) : favs).slice();
+        if (sortMode === "name") {
+            filteredFavs.sort((left, right) => left.localeCompare(right));
+        }
         container.innerHTML = "";
         if (filteredFavs.length === 0) {
             const emptyState = document.createElement("div");
@@ -382,14 +399,30 @@
         input.value = favoriteSearchQuery;
         input.style = "min-width: 16em; flex: 1 1 auto; padding: 0.45em 0.65em;";
         input.addEventListener("input", () => {
-            // Update the search query and re-render the favorites list
             favoriteSearchQuery = input.value;
+            if (!favoriteListContainerEl)
+                return;
+            renderFavorites(favoriteListContainerEl);
+        });
+        const sortButton = document.createElement("button");
+        sortButton.type = "button";
+        sortButton.id = "favorites-sort-button";
+        sortButton.className = "btn";
+        sortButton.style.whiteSpace = "nowrap";
+        sortButton.style.flex = "0 0 auto";
+        sortButton.textContent = getFavoriteSortMode() === "date" ? "Now Sort: Fav date" : "Now Sort: Name";
+        sortButton.setAttribute("aria-pressed", getFavoriteSortMode() === "name" ? "true" : "false");
+        sortButton.addEventListener("click", () => {
+            toggleFavoriteSortMode();
+            sortButton.textContent = getFavoriteSortMode() === "date" ? "Now Sort: Fav date" : "Now Sort: Name";
+            sortButton.setAttribute("aria-pressed", getFavoriteSortMode() === "name" ? "true" : "false");
             if (!favoriteListContainerEl)
                 return;
             renderFavorites(favoriteListContainerEl);
         });
         wrapper.appendChild(label);
         wrapper.appendChild(input);
+        wrapper.appendChild(sortButton);
         return wrapper;
     }
     function getFavoriteArtistsTxt() {
@@ -581,13 +614,13 @@
         const style = document.createElement("style");
         style.id = "favorites-display-button-style";
         style.textContent = `
-    #displayFavoriteArtists, #exportFavoriteArtists, #importFavoriteArtists {
+    #displayFavoriteArtists, #exportFavoriteArtists, #importFavoriteArtists, #favorites-sort-button {
         margin-left: 0.5em;
         background-color: var(--border);
         transition: background-color 0.2s ease;
     }
 
-    #displayFavoriteArtists:hover, #exportFavoriteArtists:hover, #importFavoriteArtists:hover {
+    #displayFavoriteArtists:hover, #exportFavoriteArtists:hover, #importFavoriteArtists:hover, #favorites-sort-button:hover {
         background-color: var(--accent-hover);
     }
 `;
