@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         n-artists
 // @namespace    URL
-// @version      0.2.7
+// @version      0.2.8
 // @description  Userscript to favorite nhentai artists
 // @icon         https://nhentai.net/favicon.png
 // @author       Sisyphus
@@ -282,6 +282,8 @@
     let showingFavoriteArtists = false;
     let lastFavoritesRouteKey = null;
     let importInputEl = null;
+    let favoriteSearchQuery = "";
+    let favoriteListContainerEl = null;
     function getFavoritesWorkspace() {
         return document.getElementById("favcontainer");
     }
@@ -305,8 +307,20 @@
     function renderFavorites(container) {
         const favs = getFavorites();
         const thumbs = getThumbnails();
+        const query = favoriteSearchQuery.trim().toLowerCase(); // normalize the query for case-insensitive search
+        const filteredFavs = query ? favs.filter((artist) => artist.toLowerCase().includes(query)) : favs;
         container.innerHTML = "";
-        for (const artist of favs) {
+        if (filteredFavs.length === 0) {
+            const emptyState = document.createElement("div");
+            emptyState.className = "empty-state";
+            emptyState.textContent = favoriteSearchQuery.trim()
+                ? `No favorite artists match "${favoriteSearchQuery.trim()}".`
+                : "No favorite artists yet.";
+            emptyState.style = "padding: 0.75em 0; text-align: center; opacity: 0.8;";
+            container.appendChild(emptyState);
+            return;
+        }
+        for (const artist of filteredFavs) {
             const thumb = thumbs.get(artist) || "";
             const root = document.createElement("div");
             root.className = "gallery-favorite";
@@ -350,6 +364,33 @@
             root.appendChild(gallery);
             container.appendChild(root);
         }
+    }
+    function createFavoritesSearchBar() {
+        const wrapper = document.createElement("div");
+        wrapper.id = "favorites-search";
+        wrapper.style = "display: inline-flex; align-items: center; gap: 0.5em; width: 100%; margin: 0 0 0.75em;";
+        const label = document.createElement("label");
+        label.textContent = "Search";
+        label.setAttribute("for", "favorites-search-input");
+        label.style = "white-space: nowrap; font-weight: 600;";
+        const input = document.createElement("input");
+        input.id = "favorites-search-input";
+        input.type = "search";
+        input.placeholder = "Search favorite artists";
+        input.autocomplete = "off";
+        input.spellcheck = false;
+        input.value = favoriteSearchQuery;
+        input.style = "min-width: 16em; flex: 1 1 auto; padding: 0.45em 0.65em;";
+        input.addEventListener("input", () => {
+            // Update the search query and re-render the favorites list
+            favoriteSearchQuery = input.value;
+            if (!favoriteListContainerEl)
+                return;
+            renderFavorites(favoriteListContainerEl);
+        });
+        wrapper.appendChild(label);
+        wrapper.appendChild(input);
+        return wrapper;
     }
     function getFavoriteArtistsTxt() {
         const favorites = getFavorites();
@@ -425,10 +466,9 @@
     function refreshFavoriteArtistsView() {
         if (!showingFavoriteArtists)
             return;
-        const panel = getArtistsPanel();
-        if (!panel)
+        if (!favoriteListContainerEl)
             return;
-        renderFavorites(panel);
+        renderFavorites(favoriteListContainerEl);
     }
     async function importFavoriteArtistsFile(file) {
         const text = await file.text();
@@ -492,10 +532,16 @@
             panel.style = "margin-top: 0.75em; padding: 10px 10px 40px;";
             workspace.insertAdjacentElement("beforebegin", panel);
         }
+        panel.innerHTML = "";
+        panel.appendChild(createFavoritesSearchBar());
+        const listContainer = document.createElement("div");
+        listContainer.id = "favorite-artists-list";
+        favoriteListContainerEl = listContainer;
+        panel.appendChild(listContainer);
         workspace.style.display = "none";
         setArtworkPaginationVisible(false);
         panel.style.display = "block";
-        renderFavorites(panel);
+        renderFavorites(listContainer);
         showingFavoriteArtists = true;
         if (button)
             updateDisplayButtonLabel(button);
@@ -507,6 +553,7 @@
         const panel = getArtistsPanel();
         if (panel)
             panel.remove();
+        favoriteListContainerEl = null;
         workspace.style.display = "block";
         setArtworkPaginationVisible(true);
         showingFavoriteArtists = false;
@@ -518,6 +565,7 @@
         if (lastFavoritesRouteKey !== currentRouteKey) {
             lastFavoritesRouteKey = currentRouteKey;
             showingFavoriteArtists = false;
+            favoriteListContainerEl = null;
             const panel = getArtistsPanel();
             if (panel)
                 panel.remove();
