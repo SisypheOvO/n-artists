@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         n-artists
 // @namespace    URL
-// @version      0.2.6
+// @version      0.2.7
 // @description  Userscript to favorite nhentai artists
 // @icon         https://nhentai.net/favicon.png
 // @author       Sisyphus
@@ -326,7 +326,7 @@
             img.style = "position: relative; object-fit: cover; width: 100%; height: 100%;";
             const caption = document.createElement("div");
             caption.className = "caption";
-            caption.style = "position: relative; display: inline-flex; align-items: center; justify-content: center;";
+            caption.style = "position: relative; display: grid; width: 100%; grid-template-columns: 1fr auto 1fr; align-items: center;";
             const button = createFavoriteButton("fa fa-heart favoriteArtistButton", `Remove ${artist} from favorites`);
             button.dataset.artist = artist;
             updateButtonState(true, button);
@@ -336,8 +336,11 @@
                 const added = await toggleFavorite(artist);
                 updateButtonState(added, button);
             });
+            button.style.justifySelf = "end";
             const label = document.createElement("span");
             label.textContent = artist;
+            label.style.justifySelf = "center";
+            label.style.textAlign = "center";
             link.appendChild(img);
             caption.appendChild(button);
             caption.appendChild(label);
